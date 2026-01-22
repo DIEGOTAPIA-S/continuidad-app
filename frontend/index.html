@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema de Continuidad del Negocio - Pro</title>
+    <!-- Estilos -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Librerías de Lógica -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+</head>
+<script>
+    // EL GUARDIÁN: Revisa si hay un token guardado
+    if (!localStorage.getItem('token')) {
+        // Si no hay token, lo manda al login
+        window.location.href = 'login.html';
+    }
+</script>
+<body>
+    <header>
+    <h1>🏥 Sistema de Continuidad del Negocio</h1>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <span id="displayUserName" style="font-size: 14px; font-weight: 600;"></span>
+        <button type="button" id="btnLogout" class="btn-info" style="width: auto; padding: 5px 15px; margin: 0; font-size: 12px; background: #ef4444; color: white; border: none;">
+            🚪 Cerrar Sesión
+        </button>
+    </div>
+</header>
+    <div class="main-wrapper">
+        <aside id="panel-controles">
+            <label>🚨 Nivel de Alerta</label>
+            <select id="nivelAlerta">
+                <option value="Crítica (Roja)">🔴 Crítica (Roja)</option>
+                <option value="Alta (Naranja)">🟠 Alta (Naranja)</option>
+                <option value="Media (Amarilla)">🟡 Media (Amarilla)</option>
+                <option value="Informativa (Azul)">🔵 Informativa (Azul)</option>
+            </select>
+            <label>📍 Tipo de Evento</label>
+            <select id="tipoEvento">
+                <option value="Desastre natural">Desastre natural (sismo, inundación)</option>
+                <option value="Incendio">Incendio</option>
+                <option value="Fallo servicios públicos">Fallo de servicios públicos</option>
+                <option value="Emergencia de seguridad">Emergencia de seguridad</option>
+                <option value="Otro">Otro</option>
+            </select>
+            <label>📝 Descripción Detallada</label>
+            <textarea id="descripcionEvento" placeholder="Describe el evento, impactos y acciones..."></textarea>
+            <label>🔍 Buscar Dirección</label>
+            <input type="text" id="direccionBuscar" placeholder="Ej: Calle 100, Bogotá">
+            <button type="button" id="btnBuscarDireccion" class="btn-secondary">🔍 Buscar</button>
+            <div class="card-analitica"><label><input type="checkbox" id="toggleHeatmap"> 🔥 Mapa de Calor Histórico</label></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <button type="button" id="btnVerDashboard" class="btn-info">📈 Dashboard</button>
+                <button type="button" id="btnVerHistorial" class="btn-info">📋 Historial</button>
+            </div>
+            <button type="button" id="btnGenerarResumen" class="btn-primary">📊 GENERAR IMPACTO</button>
+            <button type="button" id="btnDescargarPDF" class="btn-success">📥 DESCARGAR INFORME</button>
+        </aside>
+        <main id="map"></main>
+    </div>
+    <div id="panel-resultados">
+        <div id="infoResumen"></div>
+        <div class="stats-container"></div>
+        <div class="grafica-container"><canvas id="graficaSedes"></canvas></div>
+        <div id="listaSedesAfectadas"></div>
+    </div>
+    <!-- MODALES -->
+    <div id="modalDashboard" class="modal"><div class="modal-content">
+        <div class="modal-header"><h2>📈 Vulnerabilidad</h2><button type="button" id="btnExportarExcel" class="btn-success" style="width:auto">📗 Excel</button><span class="btn-close" id="cerrarDashboard">&times;</span></div>
+        <div class="modal-body" style="height:400px"><canvas id="graficaVulnerabilidad"></canvas></div>
+    </div></div>
+    <div id="modalHistorial" class="modal"><div class="modal-content">
+        <div class="modal-header"><h2>📜 Historial</h2><button type="button" id="btnExportarHistorial" class="btn-success" style="width:auto">📗 Exportar CSV</button><span class="btn-close" id="cerrarHistorial">&times;</span></div>
+        <div class="modal-body" id="listaHistorialItems"></div>
+    </div></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="js/map.js"></script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Sistema de Continuidad</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; height: 100vh; background: #f1f5f9; }
+        .login-card { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 350px; }
+        h2 { text-align: center; color: #0f172a; margin-bottom: 30px; }
+        .error-msg { color: #ef4444; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h2>🏥 Iniciar Sesión</h2>
+        <form id="loginForm">
+            <label>Usuario</label>
+            <input type="text" id="username" required placeholder="Ingresa tu usuario">
+            
+            <label>Contraseña</label>
+            <input type="password" id="password" required placeholder="••••••••">
+            
+            <button type="submit" class="btn-primary" style="margin-top: 25px;">Entrar al Sistema</button>
+            <div id="errorMsg" class="error-msg">Usuario o clave incorrectos</div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            const pass = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    // GUARDAR LA LLAVE (TOKEN) EN EL NAVEGADOR
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('user_name', data.full_name);
+                    localStorage.setItem('role', data.role);
+                    
+                    // IR AL MAPA
+                    window.location.href = 'index.html';
+                } else {
+                    document.getElementById('errorMsg').style.display = 'block';
+                }
+            } catch (err) {
+                alert("Error de conexión con el servidor");
+            }
+        };
+    </script>
+</body>
+</html>
