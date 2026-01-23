@@ -2,36 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema de Continuidad del Negocio - Pro</title>
-    <!-- Estilos -->
+    <title>Sistema de Continuidad Pro - Gestión de Emergencias</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <link rel="stylesheet" href="css/styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Librerías de Lógica -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 </head>
-<script>
-    // EL GUARDIÁN: Revisa si hay un token guardado
-    if (!localStorage.getItem('token')) {
-        // Si no hay token, lo manda al login
-        window.location.href = 'login.html';
-    }
-</script>
 <body>
     <header>
-    <h1>🏥 Sistema de Continuidad del Negocio</h1>
-    <div style="display: flex; align-items: center; gap: 20px;">
-        <span id="displayUserName" style="font-size: 14px; font-weight: 600;"></span>
-        <button type="button" id="btnLogout" class="btn-info" style="width: auto; padding: 5px 15px; margin: 0; font-size: 12px; background: #ef4444; color: white; border: none;">
-            🚪 Cerrar Sesión
-        </button>
-    </div>
-</header>
+        <h1>🏥 Sistema de Continuidad del Negocio</h1>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <span id="displayUserName" style="font-size: 14px; font-weight: 600;"></span>
+            <button type="button" id="btnLogout" class="btn-info" style="width: auto; padding: 5px 15px; background: #ef4444; color: white; border: none; margin:0">🚪 Cerrar Sesión</button>
+        </div>
+    </header>
+
     <div class="main-wrapper">
         <aside id="panel-controles">
             <label>🚨 Nivel de Alerta</label>
@@ -43,42 +33,82 @@
             </select>
             <label>📍 Tipo de Evento</label>
             <select id="tipoEvento">
-                <option value="Desastre natural">Desastre natural (sismo, inundación)</option>
+                <option value="Desastre natural">Desastre natural</option>
                 <option value="Incendio">Incendio</option>
-                <option value="Fallo servicios públicos">Fallo de servicios públicos</option>
+                <option value="Fallo servicios públicos">Fallo servicios públicos</option>
                 <option value="Emergencia de seguridad">Emergencia de seguridad</option>
-                <option value="Otro">Otro</option>
             </select>
             <label>📝 Descripción Detallada</label>
-            <textarea id="descripcionEvento" placeholder="Describe el evento, impactos y acciones..."></textarea>
+            <textarea id="descripcionEvento" placeholder="Describe el evento aquí..."></textarea>
             <label>🔍 Buscar Dirección</label>
             <input type="text" id="direccionBuscar" placeholder="Ej: Calle 100, Bogotá">
             <button type="button" id="btnBuscarDireccion" class="btn-secondary">🔍 Buscar</button>
-            <div class="card-analitica"><label><input type="checkbox" id="toggleHeatmap"> 🔥 Mapa de Calor Histórico</label></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div class="card-analitica"><label><input type="checkbox" id="toggleHeatmap"> 🔥 Mapa de Calor</label></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button type="button" id="btnVerDashboard" class="btn-info">📈 Dashboard</button>
                 <button type="button" id="btnVerHistorial" class="btn-info">📋 Historial</button>
             </div>
+            <button type="button" id="btnAdmin" class="btn-primary" style="background: #475569; display: none;">⚙️ Panel Administrativo</button>
             <button type="button" id="btnGenerarResumen" class="btn-primary">📊 GENERAR IMPACTO</button>
             <button type="button" id="btnDescargarPDF" class="btn-success">📥 DESCARGAR INFORME</button>
         </aside>
         <main id="map"></main>
     </div>
+
     <div id="panel-resultados">
         <div id="infoResumen"></div>
         <div class="stats-container"></div>
         <div class="grafica-container"><canvas id="graficaSedes"></canvas></div>
         <div id="listaSedesAfectadas"></div>
     </div>
-    <!-- MODALES -->
-    <div id="modalDashboard" class="modal"><div class="modal-content">
-        <div class="modal-header"><h2>📈 Vulnerabilidad</h2><button type="button" id="btnExportarExcel" class="btn-success" style="width:auto">📗 Excel</button><span class="btn-close" id="cerrarDashboard">&times;</span></div>
-        <div class="modal-body" style="height:400px"><canvas id="graficaVulnerabilidad"></canvas></div>
+
+    <!-- MODAL ADMIN -->
+    <div id="modalAdmin" class="modal"><div class="modal-content">
+        <div class="modal-header"><h2>⚙️ Gestión de Usuarios y Sedes</h2><span class="btn-close" id="cerrarAdmin">&times;</span></div>
+        <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
+            <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                <h3>👥 Usuarios</h3>
+                <div id="listaUsuariosAdmin" style="margin-bottom:15px; max-height:200px; overflow-y:auto;"></div>
+                <hr>
+                <h4>Nuevo Usuario</h4>
+                <input type="text" id="adm_user_full" placeholder="Nombre Completo">
+                <input type="text" id="adm_user_name" placeholder="Usuario">
+                <input type="password" id="adm_user_pass" placeholder="Contraseña">
+                <button type="button" class="btn-primary" onclick="crearUsuario()">Crear Usuario</button>
+            </div>
+            <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                <h3>🏢 Sedes</h3>
+                <div id="listaSedesAdmin" style="max-height:200px; overflow-y:auto; margin-bottom:15px"></div>
+                <hr>
+                <h4>Gestionar Sede</h4>
+                <input type="hidden" id="adm_sede_id">
+                <input type="text" id="adm_sede_nom" placeholder="Nombre">
+                <input type="text" id="adm_sede_dir" placeholder="Dirección">
+                <div style="display:flex; gap:5px">
+                    <input type="number" step="any" id="adm_sede_lat" placeholder="Latitud">
+                    <input type="number" step="any" id="adm_sede_lng" placeholder="Longitud">
+                    <button type="button" class="btn-info" style="width: auto; margin-top: 5px; padding: 0 10px;" onclick="iniciarCapturaMapa()">📍</button>
+                </div>
+                <div style="display:flex; gap:10px">
+                    <button type="button" class="btn-success" onclick="guardarSede()">Guardar / Actualizar</button>
+                    <button type="button" class="btn-secondary" onclick="limpiarFormSede()">Limpiar</button>
+                </div>
+            </div>
+        </div>
     </div></div>
+
+    <!-- MODAL DASHBOARD -->
+    <div id="modalDashboard" class="modal"><div class="modal-content">
+        <div class="modal-header"><h2>📈 Vulnerabilidad</h2><button type="button" id="btnExportarExcel" class="btn-success" style="width:auto">Excel</button><span class="btn-close" id="cerrarDashboard">&times;</span></div>
+        <div class="modal-body" style="height:450px"><canvas id="graficaVulnerabilidad"></canvas></div>
+    </div></div>
+
+    <!-- MODAL HISTORIAL -->
     <div id="modalHistorial" class="modal"><div class="modal-content">
-        <div class="modal-header"><h2>📜 Historial</h2><button type="button" id="btnExportarHistorial" class="btn-success" style="width:auto">📗 Exportar CSV</button><span class="btn-close" id="cerrarHistorial">&times;</span></div>
+        <div class="modal-header"><h2>📜 Historial</h2><button type="button" id="btnExportarHistorial" class="btn-success" style="width:auto">CSV</button><span class="btn-close" id="cerrarHistorial">&times;</span></div>
         <div class="modal-body" id="listaHistorialItems"></div>
     </div></div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
     <script src="js/map.js"></script>
