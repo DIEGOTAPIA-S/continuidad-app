@@ -7,15 +7,20 @@ class UserCreate(BaseModel):
     password: str
     full_name: str
 
+class UserUpdate(BaseModel):
+    username: Optional[str] = None
+    full_name: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+
 class UserResponse(BaseModel):
     id: int
     username: str
     full_name: str
     role: str
-    class Config:
-        from_attributes = True
+    class Config: from_attributes = True
 
-# --- LOGIN Y SEGURIDAD ---
+# --- LOGIN ---
 class UserLogin(BaseModel):
     username: str
     password: str
@@ -30,8 +35,7 @@ class Token(BaseModel):
 class ProcesoResponse(BaseModel):
     nombre: str
     criticidad: str
-    class Config:
-        from_attributes = True
+    class Config: from_attributes = True
 
 # --- EVENTOS ---
 class EventoCreate(BaseModel):
@@ -49,8 +53,7 @@ class EventoResponse(BaseModel):
     fecha: str
     nivel_alerta: str
     geometria: str
-    class Config:
-        from_attributes = True
+    class Config: from_attributes = True
 
 # --- SEDES ---
 class SedeCreate(BaseModel):
@@ -64,5 +67,4 @@ class SedeResponse(SedeCreate):
     activa: bool
     procesos: List[ProcesoResponse] = []
     eventos: List[EventoResponse] = [] 
-    class Config:
-        from_attributes = True
+    class Config: from_attributes = True

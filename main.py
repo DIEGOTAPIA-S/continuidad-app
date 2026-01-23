@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 from database import Base, engine, SessionLocal
 from models import Sede, Evento, Proceso, User
 from schemas import (SedeCreate, SedeResponse, EventoCreate, EventoResponse, 
-                     UserCreate, UserResponse, UserLogin, Token)
+                     UserCreate, UserResponse, UserLogin, Token, UserUpdate)
 from auth import hash_password, verify_password, create_access_token, SECRET_KEY, ALGORITHM
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -23,6 +23,12 @@ def get_current_user(res: HTTPAuthorizationCredentials = Depends(security)):
     except JWTError:
         raise HTTPException(status_code=403, detail="Sesión expirada")
 
+def get_admin_user(res: HTTPAuthorizationCredentials = Depends(security)):
+    payload = get_current_user(res)
+    if payload.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Acceso denegado: Se requiere rol de Administrador")
+    return payload
+
 def get_db():
     db = SessionLocal()
     try: yield db
@@ -37,32 +43,42 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
     token = create_access_token(data={"sub": user.username, "role": user.role})
     return {"access_token": token, "token_type": "bearer", "role": user.role, "full_name": user.full_name}
 
-# --- CRUD USUARIOS ---
+# --- CRUD USUARIOS (SOLO ADMIN) ---
 @app.get("/admin/users", response_model=List[UserResponse])
-def listar_usuarios(db: Session = Depends(get_db), user=Depends(get_current_user)):
+def listar_usuarios(db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     return db.query(User).all()
 
 @app.post("/admin/users", response_model=UserResponse)
-def crear_usuario(user: UserCreate, db: Session = Depends(get_db), admin=Depends(get_current_user)):
+def crear_usuario(user: UserCreate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     new_user = User(username=user.username, full_name=user.full_name, hashed_password=hash_password(user.password), role="analista")
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     return new_user
 
+@app.put("/admin/users/{user_id}")
+def editar_usuario(user_id: int, data: UserUpdate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if data.username: user.username = data.username
+    if data.full_name: user.full_name = data.full_name
+    if data.role: user.role = data.role
+    if data.password: user.hashed_password = hash_password(data.password)
+    db.commit()
+    return {"status": "ok"}
+
 @app.delete("/admin/users/{user_id}")
-def borrar_usuario(user_id: int, db: Session = Depends(get_db), admin=Depends(get_current_user)):
+def borrar_usuario(user_id: int, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     db.query(User).filter(User.id == user_id).delete()
     db.commit()
     return {"status": "ok"}
 
-# --- CRUD SEDES ---
+# --- CRUD SEDES (SOLO ADMIN) ---
 @app.get("/sedes", response_model=List[SedeResponse])
 def listar_sedes(db: Session = Depends(get_db), user=Depends(get_current_user)):
     return db.query(Sede).options(joinedload(Sede.procesos), joinedload(Sede.eventos)).all()
 
 @app.post("/sedes", response_model=SedeResponse)
-def crear_sede(sede: SedeCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def crear_sede(sede: SedeCreate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     nueva = Sede(**sede.model_dump())
     db.add(nueva)
     db.commit()
@@ -70,7 +86,7 @@ def crear_sede(sede: SedeCreate, db: Session = Depends(get_db), user=Depends(get
     return nueva
 
 @app.put("/sedes/{sede_id}")
-def editar_sede(sede_id: int, sede: SedeCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def editar_sede(sede_id: int, sede: SedeCreate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     db_sede = db.query(Sede).filter(Sede.id == sede_id).first()
     db_sede.nombre, db_sede.direccion = sede.nombre, sede.direccion
     db_sede.latitud, db_sede.longitud = sede.latitud, sede.longitud
@@ -78,7 +94,7 @@ def editar_sede(sede_id: int, sede: SedeCreate, db: Session = Depends(get_db), u
     return {"status": "ok"}
 
 @app.delete("/sedes/{sede_id}")
-def borrar_sede(sede_id: int, db: Session = Depends(get_db), user=Depends(get_current_user)):
+def borrar_sede(sede_id: int, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     db.query(Sede).filter(Sede.id == sede_id).delete()
     db.commit()
     return {"status": "ok"}

@@ -11,7 +11,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 </head>
 <body>
     <header>
@@ -35,7 +34,7 @@
             <select id="tipoEvento">
                 <option value="Desastre natural">Desastre natural</option>
                 <option value="Incendio">Incendio</option>
-                <option value="Fallo servicios públicos">Fallo servicios públicos</option>
+                <option value="Fallo servicios públicos">Fallo de servicios públicos</option>
                 <option value="Emergencia de seguridad">Emergencia de seguridad</option>
             </select>
             <label>📝 Descripción Detallada</label>
@@ -62,36 +61,59 @@
         <div id="listaSedesAfectadas"></div>
     </div>
 
-    <!-- MODAL ADMIN -->
+    <!-- MODAL ADMIN CON PESTAÑAS -->
     <div id="modalAdmin" class="modal"><div class="modal-content">
-        <div class="modal-header"><h2>⚙️ Gestión de Usuarios y Sedes</h2><span class="btn-close" id="cerrarAdmin">&times;</span></div>
-        <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
-            <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
-                <h3>👥 Usuarios</h3>
-                <div id="listaUsuariosAdmin" style="margin-bottom:15px; max-height:200px; overflow-y:auto;"></div>
-                <hr>
-                <h4>Nuevo Usuario</h4>
-                <input type="text" id="adm_user_full" placeholder="Nombre Completo">
-                <input type="text" id="adm_user_name" placeholder="Usuario">
-                <input type="password" id="adm_user_pass" placeholder="Contraseña">
-                <button type="button" class="btn-primary" onclick="crearUsuario()">Crear Usuario</button>
+        <div class="modal-header">
+            <div style="display:flex; gap:15px; align-items:center;">
+                <h2>⚙️ Administración</h2>
+                <button type="button" class="btn-info" style="width:auto; margin:0" onclick="switchTab('tab-users')">👥 Usuarios</button>
+                <button type="button" class="btn-info" style="width:auto; margin:0" onclick="switchTab('tab-sedes')">🏢 Sedes</button>
             </div>
-            <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
-                <h3>🏢 Sedes</h3>
-                <div id="listaSedesAdmin" style="max-height:200px; overflow-y:auto; margin-bottom:15px"></div>
-                <hr>
-                <h4>Gestionar Sede</h4>
-                <input type="hidden" id="adm_sede_id">
-                <input type="text" id="adm_sede_nom" placeholder="Nombre">
-                <input type="text" id="adm_sede_dir" placeholder="Dirección">
-                <div style="display:flex; gap:5px">
-                    <input type="number" step="any" id="adm_sede_lat" placeholder="Latitud">
-                    <input type="number" step="any" id="adm_sede_lng" placeholder="Longitud">
-                    <button type="button" class="btn-info" style="width: auto; margin-top: 5px; padding: 0 10px;" onclick="iniciarCapturaMapa()">📍</button>
+            <span class="btn-close" id="cerrarAdmin">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- PESTAÑA USUARIOS -->
+            <div id="tab-users" class="admin-tab">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                        <h3>Listado de Usuarios</h3>
+                        <div id="listaUsuariosAdmin" style="max-height:400px; overflow-y:auto;"></div>
+                    </div>
+                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                        <h3 id="userFormTitle">➕ Nuevo Usuario</h3>
+                        <input type="hidden" id="adm_user_id">
+                        <input type="text" id="adm_user_full" placeholder="Nombre Completo">
+                        <input type="text" id="adm_user_name" placeholder="Usuario">
+                        <input type="password" id="adm_user_pass" placeholder="Contraseña (opcional si edita)">
+                        <select id="adm_user_role">
+                            <option value="analista">Analista</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                        <button type="button" class="btn-primary" onclick="guardarUsuario()">Guardar Usuario</button>
+                        <button type="button" class="btn-secondary" onclick="limpiarFormUser()">Limpiar</button>
+                    </div>
                 </div>
-                <div style="display:flex; gap:10px">
-                    <button type="button" class="btn-success" onclick="guardarSede()">Guardar / Actualizar</button>
-                    <button type="button" class="btn-secondary" onclick="limpiarFormSede()">Limpiar</button>
+            </div>
+            <!-- PESTAÑA SEDES -->
+            <div id="tab-sedes" class="admin-tab" style="display:none">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                        <h3>Listado de Sedes</h3>
+                        <div id="listaSedesAdmin" style="max-height:400px; overflow-y:auto;"></div>
+                    </div>
+                    <div style="background:#f8fafc; padding:15px; border-radius:12px; border:1px solid #e2e8f0;">
+                        <h3 id="sedeFormTitle">➕ Gestionar Sede</h3>
+                        <input type="hidden" id="adm_sede_id">
+                        <input type="text" id="adm_sede_nom" placeholder="Nombre">
+                        <input type="text" id="adm_sede_dir" placeholder="Dirección">
+                        <div style="display:flex; gap:5px">
+                            <input type="number" step="any" id="adm_sede_lat" placeholder="Latitud">
+                            <input type="number" step="any" id="adm_sede_lng" placeholder="Longitud">
+                            <button type="button" class="btn-info" style="width: auto; margin-top: 5px; padding: 0 10px;" onclick="iniciarCapturaMapa()">📍</button>
+                        </div>
+                        <button type="button" class="btn-success" onclick="guardarSede()">Guardar Sede</button>
+                        <button type="button" class="btn-secondary" onclick="limpiarFormSede()">Limpiar</button>
+                    </div>
                 </div>
             </div>
         </div>
