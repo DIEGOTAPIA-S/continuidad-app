@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Continuidad Pro BIA</title>
+    <title>Sistema de Continuidad Pro BIA - Gestión de Emergencias</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
     <link rel="stylesheet" href="css/styles.css">
@@ -11,16 +11,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 </head>
 <body>
     <header>
         <h1>🏥 Sistema de Continuidad del Negocio</h1>
         <div style="display:flex; align-items:center; gap:15px">
             <span id="displayUserName"></span>
-            <button type="button" id="btnLogout" class="btn-info" style="width:auto; padding:5px 15px; margin:0; background:#ef4444; color:white;">Cerrar Sesión</button>
+            <button type="button" id="btnLogout" class="btn-danger-small" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Cerrar Sesión</button>
         </div>
     </header>
+
     <div class="main-wrapper">
         <aside id="panel-controles">
             <label>🚨 Nivel de Alerta</label>
@@ -30,26 +30,42 @@
                 <option value="Media (Amarilla)">🟡 Media (Amarilla)</option>
                 <option value="Informativa (Azul)">🔵 Informativa (Azul)</option>
             </select>
+
             <label>📍 Tipo de Evento</label>
             <select id="tipoEvento">
                 <option value="Desastre natural">Desastre natural</option>
                 <option value="Incendio">Incendio</option>
-                <option value="Fallo servicios">Fallo servicios públicos</option>
+                <option value="Fallo servicios públicos">Fallo de servicios públicos</option>
+                <option value="Emergencia de seguridad">Emergencia de seguridad</option>
             </select>
-            <label>📝 Descripción</label>
-            <textarea id="descripcionEvento" placeholder="Describe el evento..."></textarea>
-            <button type="button" id="btnBuscarDireccion" class="btn-secondary">🔍 Buscar Ubicación</button>
-            <div class="card-analitica"><label style="cursor:pointer"><input type="checkbox" id="toggleHeatmap"> 🔥 Mapa de Calor</label></div>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px">
+            
+            <label>📝 Descripción Detallada</label>
+            <textarea id="descripcionEvento" placeholder="Describe el evento aquí..."></textarea>
+
+            <!-- BARRA DE BÚSQUEDA RESTAURADA -->
+            <label>🔍 Buscar Dirección / Ubicación</label>
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="direccionBuscar" placeholder="Ej: Calle 100, Bogotá">
+                <button type="button" id="btnBuscarDireccion" class="btn-secondary" style="width: 60px; margin-top: 5px;">🔍</button>
+            </div>
+
+            <hr class="separador">
+            
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px">
                 <button type="button" id="btnVerDashboard" class="btn-info">📈 Dashboard</button>
                 <button type="button" id="btnVerHistorial" class="btn-info">📋 Historial</button>
             </div>
+            
+            <!-- Botón Admin (Solo se ve si es admin) -->
             <button type="button" id="btnAdmin" class="btn-primary" style="display:none; background:#475569">⚙️ Administración</button>
+
             <button type="button" id="btnGenerarResumen" class="btn-primary">📊 GENERAR IMPACTO</button>
             <button type="button" id="btnDescargarPDF" class="btn-success">📥 DESCARGAR INFORME</button>
         </aside>
+
         <main id="map"></main>
     </div>
+
     <div id="panel-resultados">
         <div id="infoResumen"></div>
         <div class="stats-container"></div>
@@ -57,13 +73,13 @@
         <div id="listaSedesAfectadas"></div>
     </div>
 
-    <!-- MODAL ADMIN CON PESTAÑAS -->
+    <!-- MODALES (Dashboard, Historial, Admin) -->
     <div id="modalAdmin" class="modal"><div class="modal-content">
         <div class="modal-header">
-            <div style="display:flex; gap:10px; align-items:center;">
+            <div style="display:flex; gap:10px">
                 <h2>⚙️ Gestión</h2>
-                <button type="button" class="btn-info" style="width:auto; margin:0" onclick="switchTab('tab-users')">Usuarios</button>
-                <button type="button" class="btn-info" style="width:auto; margin:0" onclick="switchTab('tab-sedes')">Sedes/BIA</button>
+                <button type="button" class="btn-tab" onclick="switchTab('tab-users')">Usuarios</button>
+                <button type="button" class="btn-tab" onclick="switchTab('tab-sedes')">Sedes/BIA</button>
             </div>
             <span class="btn-close" id="cerrarAdmin">&times;</span>
         </div>
@@ -71,14 +87,13 @@
             <div id="tab-users" class="admin-tab">
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px">
                     <div><h3>Listado</h3><div id="listaUsuariosAdmin"></div></div>
-                    <div><h3 id="userFormTitle">Gestionar</h3>
+                    <div><h3>Gestionar</h3>
                         <input type="hidden" id="adm_user_id">
                         <input type="text" id="adm_user_full" placeholder="Nombre">
                         <input type="text" id="adm_user_name" placeholder="Usuario">
                         <input type="password" id="adm_user_pass" placeholder="Clave">
                         <select id="adm_user_role"><option value="analista">Analista</option><option value="admin">Admin</option></select>
                         <button type="button" class="btn-primary" onclick="guardarUsuario()">Guardar</button>
-                        <button type="button" class="btn-secondary" onclick="limpiarFormUser()">Limpiar</button>
                     </div>
                 </div>
             </div>
@@ -92,9 +107,8 @@
                         <button type="button" class="btn-success" onclick="guardarSede()">Guardar Sede</button>
                     </div>
                     <div><h3>Procesos BIA</h3><select id="sel_sede_proceso" onchange="cargarProcesosSede()"></select><div id="listaProcesosAdmin"></div><hr>
-                        <input type="text" id="proc_nombre" placeholder="Proceso">
-                        <select id="proc_crit"><option value="Alta">Alta</option><option value="Media">Media</option><option value="Baja">Baja</option></select>
-                        <div style="display:flex; gap:5px"><input type="number" id="proc_rto" value="4"><input type="number" id="proc_rpo" value="2"></div>
+                        <input type="text" id="proc_nombre" placeholder="Proceso"><select id="proc_crit"><option value="Alta">Alta</option><option value="Media">Media</option><option value="Baja">Baja</option></select>
+                        <div style="display:flex; gap:5px"><input type="number" id="proc_rto" placeholder="RTO (h)"><input type="number" id="proc_rpo" placeholder="RPO (h)"></div>
                         <button type="button" class="btn-primary" onclick="guardarProceso()">Añadir Proceso</button>
                     </div>
                 </div>
@@ -102,8 +116,25 @@
         </div>
     </div></div>
 
-    <div id="modalDashboard" class="modal"><div class="modal-content"><div class="modal-header"><h2>📈 Dashboard</h2><button type="button" id="btnExportarExcel" class="btn-success" style="width:auto">Excel</button><span class="btn-close" id="cerrarDashboard">&times;</span></div><div class="modal-body" style="height:400px"><canvas id="graficaVulnerabilidad"></canvas></div></div></div>
-    <div id="modalHistorial" class="modal"><div class="modal-content"><div class="modal-header"><h2>📜 Historial</h2><button type="button" id="btnExportarHistorial" class="btn-success" style="width:auto">CSV</button><span class="btn-close" id="cerrarHistorial">&times;</span></div><div class="modal-body" id="listaHistorialItems"></div></div></div>
+<!-- MODAL DASHBOARD ACTUALIZADO -->
+    <div id="modalDashboard" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📈 Análisis de Vulnerabilidad Histórica</h2>
+                <div style="display:flex; gap:10px">
+                    <button type="button" id="btnExportarExcel" class="btn-success" style="width:auto; margin:0">📗 Excel</button>
+                    <span class="btn-close" id="cerrarDashboard">&times;</span>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="dashboard-canvas-wrapper">
+                    <canvas id="graficaVulnerabilidad"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modalHistorial" class="modal"><div class="modal-content"><div class="modal-header"><h2>📜 Historial</h2><span class="btn-close" id="cerrarHistorial">&times;</span></div><div class="modal-body" id="listaHistorialItems"></div></div></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>

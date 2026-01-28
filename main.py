@@ -34,7 +34,7 @@ def get_db():
     try: yield db
     finally: db.close()
 
-# --- AUTH ---
+# --- LOGIN ---
 @app.post("/login", response_model=Token)
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == user_data.username).first()
@@ -55,6 +55,7 @@ def crear_sede(sede: SedeCreate, db: Session = Depends(get_db), admin=Depends(ge
 @app.put("/sedes/{id}")
 def editar_sede(id: int, s: SedeCreate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     db_s = db.query(Sede).filter(Sede.id == id).first()
+    if not db_s: raise HTTPException(status_code=404)
     db_s.nombre, db_s.direccion, db_s.latitud, db_s.longitud = s.nombre, s.direccion, s.latitud, s.longitud
     db.commit(); return {"ok":True}
 
@@ -75,11 +76,18 @@ def borrar_proceso(p_id: int, db: Session = Depends(get_db), admin=Depends(get_a
 @app.get("/admin/users", response_model=List[UserResponse])
 def list_u(db: Session = Depends(get_db), admin=Depends(get_admin_user)): return db.query(User).all()
 
+@app.post("/admin/users", response_model=UserResponse)
+def admin_create_user(user: UserCreate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
+    new = User(username=user.username, full_name=user.full_name, hashed_password=hash_password(user.password), role="analista")
+    db.add(new); db.commit(); db.refresh(new); return new
+
 @app.put("/admin/users/{id}")
 def edit_u(id: int, data: UserUpdate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     u = db.query(User).filter(User.id == id).first()
+    if not u: raise HTTPException(status_code=404)
     if data.username: u.username = data.username
     if data.full_name: u.full_name = data.full_name
+    if data.role: u.role = data.role
     if data.password: u.hashed_password = hash_password(data.password)
     db.commit(); return {"ok":True}
 

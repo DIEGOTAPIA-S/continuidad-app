@@ -68,7 +68,7 @@ class SedeResponse(SedeCreate):
     eventos: List[EventoResponse] = [] 
     class Config: from_attributes = True
 
-# --- SEGURIDAD ---
+# --- LOGIN ---
 class Token(BaseModel):
     access_token: str
     token_type: str
