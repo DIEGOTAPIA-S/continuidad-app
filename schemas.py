@@ -20,21 +20,20 @@ class UserResponse(BaseModel):
     role: str
     class Config: from_attributes = True
 
-# --- LOGIN ---
-class UserLogin(BaseModel):
-    username: str
-    password: str
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-    role: str
-    full_name: str
-
-# --- PROCESOS ---
-class ProcesoResponse(BaseModel):
+# --- PROCESOS (BIA) ---
+class ProcesoCreate(BaseModel):
     nombre: str
     criticidad: str
+    rto: int
+    rpo: int
+    sede_id: int
+
+class ProcesoResponse(BaseModel):
+    id: int
+    nombre: str
+    criticidad: str
+    rto: int
+    rpo: int
     class Config: from_attributes = True
 
 # --- EVENTOS ---
@@ -68,3 +67,14 @@ class SedeResponse(SedeCreate):
     procesos: List[ProcesoResponse] = []
     eventos: List[EventoResponse] = [] 
     class Config: from_attributes = True
+
+# --- SEGURIDAD ---
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+    role: str
+    full_name: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str

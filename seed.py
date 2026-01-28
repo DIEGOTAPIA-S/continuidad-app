@@ -2,6 +2,11 @@ import requests
 
 URL_BASE = "http://127.0.0.1:8000"
 
+# 1. DATOS DE ACCESO (Deben existir en tu base de datos)
+ADMIN_USER = "admin"
+ADMIN_PASS = "123"
+
+# 2. LISTADO COMPLETO DE LAS 30 SEDES
 sedes_data = [
     {"nombre": "Colmédica Belaire", "direccion": "Cl. 153 #6-65, Bogotá", "lat": 4.729454, "lng": -74.024442},
     {"nombre": "Colmédica Bulevar Niza", "direccion": "Av. Cl. 127 #58-59, Bogotá", "lat": 4.712693, "lng": -74.071400},
@@ -35,16 +40,50 @@ sedes_data = [
     {"nombre": "Colmédica Yopal", "direccion": "Cr 21 35-68, Yopal", "lat": 5.327695, "lng": -72.386377}
 ]
 
-def poblar():
-    for s in sedes_data:
-        body = {"nombre": s["nombre"], "direccion": s["direccion"], "latitud": s["lat"], "longitud": s["lng"]}
-        res = requests.post(f"{URL_BASE}/sedes", json=body)
-        if res.status_code == 200:
-            s_id = res.json()["id"]
-            # Agregamos procesos críticos para que las tablas funcionen
-            requests.post(f"{URL_BASE}/procesos?nombre=Urgencias&criticidad=Alta&sede_id={s_id}")
-            requests.post(f"{URL_BASE}/procesos?nombre=Farmacia&criticidad=Media&sede_id={s_id}")
-            print(f"✅ {s['nombre']} cargada con procesos.")
+def poblar_sistema():
+    # --- PASO 1: LOGIN ---
+    print("🔐 Solicitando acceso al servidor...")
+    try:
+        login_res = requests.post(f"{URL_BASE}/login", json={"username": ADMIN_USER, "password": ADMIN_PASS})
+        if login_res.status_code != 200:
+            print("❌ Error: No se pudo iniciar sesión. Verifica que corriste 'python create_user.py'")
+            return
+        
+        token = login_res.json()["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
+        print("✅ Acceso concedido.\n")
+
+        # --- PASO 2: CARGAR SEDES ---
+        for s in sedes_data:
+            body = {
+                "nombre": s["nombre"],
+                "direccion": s["direccion"],
+                "latitud": s["lat"],
+                "longitud": s["lng"]
+            }
+            res_sede = requests.post(f"{URL_BASE}/sedes", json=body, headers=headers)
+            
+            if res_sede.status_code == 200:
+                s_id = res_sede.json()["id"]
+                print(f"🏢 Sede creada: {s['nombre']}")
+                
+                # --- PASO 3: AÑADIR PROCESO BIA POR DEFECTO ---
+                proceso_body = {
+                    "nombre": "Atención Médica General",
+                    "criticidad": "Alta",
+                    "rto": 4,
+                    "rpo": 2,
+                    "sede_id": s_id
+                }
+                requests.post(f"{URL_BASE}/procesos", json=proceso_body, headers=headers)
+                print(f"   ∟ ✅ Procesos BIA configurados.")
+            else:
+                print(f"❌ Error en {s['nombre']}: {res_sede.text}")
+
+        print("\n🚀 ¡Carga masiva finalizada con éxito!")
+
+    except Exception as e:
+        print(f"❌ Error de conexión: {e}")
 
 if __name__ == "__main__":
-    poblar()
+    poblar_sistema()
