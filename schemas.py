@@ -51,6 +51,7 @@ class EventoResponse(BaseModel):
     descripcion: str
     fecha: str
     nivel_alerta: str
+    creado_por: Optional[str] = None
     geometria: str
     class Config: from_attributes = True
 
@@ -68,7 +69,7 @@ class SedeResponse(SedeCreate):
     eventos: List[EventoResponse] = [] 
     class Config: from_attributes = True
 
-# --- LOGIN ---
+# --- SEGURIDAD ---
 class Token(BaseModel):
     access_token: str
     token_type: str

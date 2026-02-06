@@ -34,7 +34,7 @@ def get_db():
     try: yield db
     finally: db.close()
 
-# --- LOGIN ---
+# --- AUTH ---
 @app.post("/login", response_model=Token)
 def login(user_data: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == user_data.username).first()
@@ -55,7 +55,6 @@ def crear_sede(sede: SedeCreate, db: Session = Depends(get_db), admin=Depends(ge
 @app.put("/sedes/{id}")
 def editar_sede(id: int, s: SedeCreate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     db_s = db.query(Sede).filter(Sede.id == id).first()
-    if not db_s: raise HTTPException(status_code=404)
     db_s.nombre, db_s.direccion, db_s.latitud, db_s.longitud = s.nombre, s.direccion, s.latitud, s.longitud
     db.commit(); return {"ok":True}
 
@@ -84,7 +83,6 @@ def admin_create_user(user: UserCreate, db: Session = Depends(get_db), admin=Dep
 @app.put("/admin/users/{id}")
 def edit_u(id: int, data: UserUpdate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     u = db.query(User).filter(User.id == id).first()
-    if not u: raise HTTPException(status_code=404)
     if data.username: u.username = data.username
     if data.full_name: u.full_name = data.full_name
     if data.role: u.role = data.role
@@ -98,9 +96,10 @@ def del_u(id: int, db: Session = Depends(get_db), admin=Depends(get_admin_user))
 # --- EVENTOS ---
 @app.post("/eventos", response_model=EventoResponse)
 def save_ev(ev: EventoCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    new = Evento(tipo=ev.tipo, descripcion=ev.descripcion, fecha=ev.fecha, nivel_alerta=ev.nivel_alerta, geometria=ev.geometria)
+    curr_user = db.query(User).filter(User.username == user["sub"]).first()
+    new = Evento(tipo=ev.tipo, descripcion=ev.descripcion, fecha=ev.fecha, nivel_alerta=ev.nivel_alerta, geometria=ev.geometria, creado_por=curr_user.full_name)
     new.sedes_relacionadas = db.query(Sede).filter(Sede.id.in_(ev.sedes_afectadas_ids)).all()
-    db.add(new); db.commit(); return new
+    db.add(new); db.commit(); db.refresh(new); return new
 
 @app.get("/eventos", response_model=List[EventoResponse])
 def list_ev(db: Session = Depends(get_db), user=Depends(get_current_user)): return db.query(Evento).all()

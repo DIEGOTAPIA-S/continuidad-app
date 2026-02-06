@@ -11,43 +11,33 @@ header h1 { margin: 0; font-size: 18px; }
 
 label { display: block; margin-top: 15px; font-weight: 600; font-size: 11px; text-transform: uppercase; color: #64748b; }
 input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; font-size: 14px; }
-button { width: 100%; margin-top: 10px; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
 
+button { width: 100%; margin-top: 10px; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: 0.2s; }
 .btn-primary { background: var(--accent); color: white; }
 .btn-success { background: var(--success); color: white; }
 .btn-info { background: #f1f5f9; color: var(--primary); border: 1px solid #e2e8f0; }
-.btn-danger-small { background: var(--danger); color: white; width: auto; font-size: 11px; padding: 5px 10px; }
-.btn-tab { background: #e2e8f0; color: #475569; width: auto; padding: 8px 15px; margin: 0; }
-
-/* --- ADMIN LAYOUT --- */
-.admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.admin-card { background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; }
-.bia-inputs { display: flex; gap: 10px; margin-top: 10px; }
-.bia-inputs div { flex: 1; }
+.btn-secondary { background: #64748b; color: white; }
+.btn-danger-small { background: var(--danger); color: white; width: auto; font-size: 11px; padding: 5px 15px; }
 
 /* --- RESULTADOS --- */
-#panel-resultados { padding: 30px; background: white; margin: 15px; border-radius: 16px; display: none; }
-.stats-container { display: flex; gap: 12px; margin: 20px 0; }
-.stat-box { flex: 1; padding: 15px; border-radius: 10px; text-align: center; color: white; }
-.stat-box h3 { margin: 0; font-size: 22px; }
+#panel-resultados { padding: 30px; background: white; margin: 15px; border-radius: 16px; display: none; border-top: 5px solid var(--accent); }
+.stats-container { display: flex; gap: 15px; margin: 20px 0; }
+.stat-box { flex: 1; padding: 20px; border-radius: 12px; text-align: center; color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.stat-box h3 { margin: 0; font-size: 24px; }
 .rojo { background: var(--danger); } .amarillo { background: var(--warning); color: #333; } .verde { background: var(--success); }
-.grafica-container { max-width: 350px; margin: 20px auto; height: 350px; }
+
+.grafica-container { max-width: 400px; margin: 20px auto; height: 350px; }
 
 /* --- MODALES --- */
 .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); }
 .modal-content { background: white; margin: 2% auto; width: 90%; max-height: 90vh; border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; }
-.modal-header { padding: 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.modal-header { padding: 20px 30px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
+.modal-body { padding: 30px; overflow-y: auto; flex: 1; }
 .btn-close { cursor: pointer; font-size: 35px; color: var(--danger); font-weight: bold; }
 
-.historial-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-.sede-card-afectada { background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
-.tabla-procesos { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
-.tabla-procesos th, .tabla-procesos td { border: 1px solid #eee; padding: 8px; text-align: left; font-size: 12px; }
-
-/* --- FIX ESPECÍFICO DASHBOARD --- */
-.dashboard-canvas-wrapper { 
-    position: relative; 
-    height: 500px; /* Altura fija para que la gráfica no desaparezca */
-    width: 100%; 
-}
+/* --- HISTORIAL --- */
+.historial-item { background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 15px; margin-bottom: 25px; border-left: 6px solid var(--accent); }
+.sede-card-afectada { background: #fff5f5; border: 1px solid #feb2b2; padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 8px solid var(--danger); }
+.tabla-procesos { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; border-radius: 8px; overflow: hidden; }
+.tabla-procesos th, .tabla-procesos td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; font-size: 13px; }
+.tabla-procesos th { background: #f8fafc; font-weight: 600; }

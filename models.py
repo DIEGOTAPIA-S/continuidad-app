@@ -2,7 +2,6 @@ from sqlalchemy import Column, Integer, String, Boolean, Float, Text, ForeignKey
 from sqlalchemy.orm import relationship
 from database import Base
 
-# Tabla intermedia para el Dashboard
 evento_sedes = Table(
     "evento_sedes",
     Base.metadata,
@@ -34,8 +33,8 @@ class Proceso(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, nullable=False)
     criticidad = Column(String)
-    rto = Column(Integer, default=4) # Tiempo Objetivo Recuperación
-    rpo = Column(Integer, default=2) # Punto Objetivo Recuperación
+    rto = Column(Integer, default=4)
+    rpo = Column(Integer, default=2)
     sede_id = Column(Integer, ForeignKey("sedes.id"))
     sede = relationship("Sede", back_populates="procesos")
 
@@ -47,4 +46,5 @@ class Evento(Base):
     fecha = Column(String)
     nivel_alerta = Column(String)
     geometria = Column(Text)
+    creado_por = Column(String) # Auditoría
     sedes_relacionadas = relationship("Sede", secondary=evento_sedes, back_populates="eventos")
