@@ -57,6 +57,7 @@ def poblar_sistema():
         for s in sedes_data:
             body = {
                 "nombre": s["nombre"],
+                "ciudad": s.get("ciudad", s["direccion"].split(',')[-1].strip()), # Inferir ciudad de la dirección si no existe
                 "direccion": s["direccion"],
                 "latitud": s["lat"],
                 "longitud": s["lng"]

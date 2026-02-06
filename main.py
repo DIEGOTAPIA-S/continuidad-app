@@ -55,7 +55,7 @@ def crear_sede(sede: SedeCreate, db: Session = Depends(get_db), admin=Depends(ge
 @app.put("/sedes/{id}")
 def editar_sede(id: int, s: SedeCreate, db: Session = Depends(get_db), admin=Depends(get_admin_user)):
     db_s = db.query(Sede).filter(Sede.id == id).first()
-    db_s.nombre, db_s.direccion, db_s.latitud, db_s.longitud = s.nombre, s.direccion, s.latitud, s.longitud
+    db_s.nombre, db_s.ciudad, db_s.direccion, db_s.latitud, db_s.longitud = s.nombre, s.ciudad, s.direccion, s.latitud, s.longitud
     db.commit(); return {"ok":True}
 
 @app.delete("/sedes/{id}")

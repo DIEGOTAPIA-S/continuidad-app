@@ -58,6 +58,7 @@ class EventoResponse(BaseModel):
 # --- SEDES ---
 class SedeCreate(BaseModel):
     nombre: str
+    ciudad: str = "Bogotá"
     direccion: str
     latitud: float
     longitud: float

@@ -21,6 +21,7 @@ class Sede(Base):
     __tablename__ = "sedes"
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String, nullable=False)
+    ciudad = Column(String, default="Bogotá")
     direccion = Column(String, nullable=False)
     latitud = Column(Float, nullable=False)
     longitud = Column(Float, nullable=False)
